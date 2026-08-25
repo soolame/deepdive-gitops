@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://charts.redpanda.com
       chart: operator
-      targetRevision: "TODO-PIN"          # PIN: run `make chart-versions`
+      targetRevision: "26.2.2"          # PIN: run `make chart-versions`
       helm:
         valueFiles:
           - $values/values/redpanda-operator.yaml

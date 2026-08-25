@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://cloudnative-pg.github.io/charts
       chart: cloudnative-pg
-      targetRevision: "TODO-PIN"          # PIN: run `make chart-versions`
+      targetRevision: "0.29.0"          # PIN: run `make chart-versions`
       helm:
         valueFiles:
           - $values/values/cloudnative-pg.yaml

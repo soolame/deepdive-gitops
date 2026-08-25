@@ -1,29 +1,39 @@
 #!/usr/bin/env bash
-# Resolves the latest version of every upstream chart referenced in apps/
-# and prints the pin you should paste in. Nothing is guessed.
+# Resolves the real version of every upstream chart referenced in apps/.
+# No associative arrays: macOS ships bash 3.2.
 set -euo pipefail
 
-declare -A REPOS=(
-  [cnpg]="https://cloudnative-pg.github.io/charts"
-  [redpanda]="https://charts.redpanda.com"
-  [cloudpirates]="https://cloudpirates-io.github.io/helm-charts"
-)
-for name in "${!REPOS[@]}"; do
-  helm repo add "$name" "${REPOS[$name]}" >/dev/null 2>&1 || true
-done
-helm repo update >/dev/null
+command -v helm >/dev/null || { echo "helm not installed"; exit 1; }
 
-check () {  # $1 app-file  $2 repo-alias  $3 chart
-  printf '%-22s ' "$1"
-  v=$(helm search repo "$2/$3" --output json 2>/dev/null \
-       | grep -o '"version":"[^"]*"' | head -1 | cut -d'"' -f4 || true)
-  if [ -n "${v:-}" ]; then
-    echo "-> $v    (sed -i '' 's/TODO-PIN/$v/' apps/$1.yaml)"
+add () { helm repo add "$1" "$2" >/dev/null 2>&1 || true; }
+add cnpg         https://cloudnative-pg.github.io/charts
+add redpanda     https://charts.redpanda.com
+add cloudpirates https://cloudpirates-io.github.io/helm-charts
+echo "updating repo indexes..."
+helm repo update >/dev/null 2>&1 || true
+echo
+
+# $1 = apps/<file>  $2 = repo alias  $3 = chart name
+check () {
+  app="$1"; repo="$2"; chart="$3"
+  printf '%-20s %-28s ' "$app" "$repo/$chart"
+  ver=$(helm search repo "${repo}/${chart}" --output json 2>/dev/null \
+        | grep -o '"version":"[^"]*"' | head -1 | cut -d'"' -f4) || ver=""
+  if [ -n "$ver" ]; then
+    echo "$ver"
+    printf '  -> sed -i "" "s/TODO-PIN/%s/" apps/%s.yaml\n' "$ver" "$app"
   else
-    echo "NOT FOUND - chart name or repo is wrong, fix apps/$1.yaml"
+    echo "NOT FOUND"
+    echo "  charts actually in $repo:"
+    helm search repo "${repo}/" --output json 2>/dev/null \
+      | grep -o '"name":"[^"]*"' | cut -d'"' -f4 | sed 's/^/    /' \
+      || echo "    (repo unreachable)"
   fi
+  echo
 }
 
 check cloudnative-pg    cnpg         cloudnative-pg
 check redpanda-operator redpanda     operator
 check valkey            cloudpirates valkey
+
+echo "Paste the sed lines above, then: git commit -am 'pin chart versions' && git push"

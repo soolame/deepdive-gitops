@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://cloudpirates-io.github.io/helm-charts
       chart: valkey
-      targetRevision: "TODO-PIN"          # PIN: run `make chart-versions`
+      targetRevision: "0.25.5"          # PIN: run `make chart-versions`
       helm:
         valueFiles:
           - $values/values/valkey.yaml
