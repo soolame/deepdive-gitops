@@ -1,0 +1,11 @@
+# Valkey: Redis fork, protocol-compatible, so go-redis needs no changes.
+# Cache only -- no persistence keeps the memory floor low.
+architecture: standalone
+auth:
+  enabled: false          # TODO: turn on once the services need it
+persistence:
+  enabled: false
+resources:
+  requests: { cpu: 50m, memory: 128Mi }
+  limits:   { memory: 128Mi }
+# VERIFY key paths: helm show values <repo>/valkey --version <pinned>

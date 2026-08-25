@@ -1,0 +1,32 @@
+# Trimmed Argo CD for a laptop cluster (~half the default footprint).
+#   helm repo add argo https://argoproj.github.io/argo-helm
+#   helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace \
+#     -f bootstrap/argocd-values.yaml
+configs:
+  params:
+    server.insecure: true
+dex:            { enabled: false }
+notifications:  { enabled: false }
+redis-ha:       { enabled: false }
+applicationSet: { enabled: true }
+controller:
+  replicas: 1
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { memory: 512Mi }
+repoServer:
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits:   { memory: 320Mi }
+server:
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits:   { memory: 256Mi }
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: argocd.127.0.0.1.nip.io
+redis:
+  resources:
+    requests: { cpu: 25m, memory: 64Mi }
+    limits:   { memory: 128Mi }

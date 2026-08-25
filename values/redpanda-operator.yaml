@@ -1,0 +1,5 @@
+resources:
+  requests: { cpu: 50m, memory: 128Mi }
+  limits:   { memory: 256Mi }
+# VERIFY against the chart's own values.yaml:
+#   helm show values redpanda/operator --version <pinned>

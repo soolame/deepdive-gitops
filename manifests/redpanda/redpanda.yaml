@@ -1,0 +1,36 @@
+# Redpanda CR consumed by the Redpanda operator.
+# VERIFY apiVersion against the operator version you pinned -- this has moved
+# between v1alpha1 and v1alpha2. `kubectl api-resources | grep redpanda`
+apiVersion: cluster.redpanda.com/v1alpha2
+kind: Redpanda
+metadata:
+  name: redpanda
+spec:
+  clusterSpec:
+    statefulset:
+      replicas: 1
+    resources:
+      cpu:
+        cores: 1
+      memory:
+        container:
+          max: 1300Mi
+    storage:
+      persistentVolume:
+        enabled: true
+        size: 2Gi
+        storageClass: standard
+    tls:
+      enabled: false                # do NOT pull in cert-manager
+    external:
+      enabled: false                # in-cluster access only
+    console:
+      enabled: true
+      ingress:
+        enabled: true
+        className: nginx
+        hosts:
+          - host: redpanda.127.0.0.1.nip.io
+            paths:
+              - path: /
+                pathType: Prefix
