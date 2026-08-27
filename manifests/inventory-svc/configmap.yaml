@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-svc-config
+data:
+  GRPC_ADDR: ":9091"
+  PGHOST: "postgres"
+  PGPORT: "5432"
+  PGDATABASE: "inventory"

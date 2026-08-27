@@ -1,0 +1,51 @@
+# PGUSER/PGPASSWORD come from the postgres-credentials secret (created by
+# `make secrets`, never committed) so DATABASE_URL never has a plaintext
+# password in git. $(VAR) refs resolve against earlier env entries in this
+# same container - order matters.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-svc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-svc
+  template:
+    metadata:
+      labels:
+        app: inventory-svc
+    spec:
+      containers:
+        - name: inventory-svc
+          image: placeholder/deepdive-inventory-svc:latest
+          ports:
+            - containerPort: 9091
+              name: grpc
+          envFrom:
+            - configMapRef:
+                name: inventory-svc-config
+          env:
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            - name: DATABASE_URL
+              value: "postgres://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)"
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 128Mi }
+          readinessProbe:
+            tcpSocket: { port: 9091 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 9091 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
