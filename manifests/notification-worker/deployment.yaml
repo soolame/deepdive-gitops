@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: notification-worker
-          image: placeholder/deepdive-notification-worker:latest
+          image: soolame7/deepdive-notification-worker:34687d6823a50b8b8993fd7550689a0b954454cc
           envFrom:
             - configMapRef:
                 name: notification-worker-config

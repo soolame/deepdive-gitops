@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: order-api
-          image: placeholder/deepdive-order-api:latest
+          image: soolame7/deepdive-order-api:34687d6823a50b8b8993fd7550689a0b954454cc
           ports:
             - containerPort: 8080
               name: http
