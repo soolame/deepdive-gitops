@@ -1,0 +1,9 @@
+# Runs once against a fresh (empty) data dir, after POSTGRES_DB is created.
+# https://hub.docker.com/_/postgres -> "Initialization scripts"
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+data:
+  02-inventory-db.sql: |
+    CREATE DATABASE inventory OWNER app;

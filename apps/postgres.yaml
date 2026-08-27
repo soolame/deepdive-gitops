@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: postgres-cluster
+  name: postgres
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
@@ -25,3 +25,10 @@ spec:
     retry:
       limit: 5
       backoff: { duration: 10s, factor: 2, maxDuration: 2m }
+  # Kubernetes mutates volumeClaimTemplates after creation; without this the
+  # StatefulSet sits permanently OutOfSync and selfHeal thrashes.
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates

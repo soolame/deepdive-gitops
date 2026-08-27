@@ -54,12 +54,12 @@ status: ## App health + real memory use
 
 .PHONY: urls
 urls: ## Ingress URLs (needs `minikube tunnel` running)
-	@echo "Argo CD           http://argocd.127.0.0.1.nip.io"
-	@echo "Redpanda Console  http://redpanda.127.0.0.1.nip.io"
+	@echo "Argo CD    http://argocd.127.0.0.1.nip.io"
+	@echo "Kafka UI   http://kafka-ui.127.0.0.1.nip.io"
 
 .PHONY: psql
-psql: ## psql shell into the CNPG primary
-	kubectl -n $(DATA_NS) exec -it postgres-1 -- psql -U postgres
+psql: ## psql shell into postgres
+	kubectl -n $(DATA_NS) exec -it postgres-0 -- psql -U app -d orders
 
 .PHONY: nuke
 nuke: ## Delete the data namespace (destructive)

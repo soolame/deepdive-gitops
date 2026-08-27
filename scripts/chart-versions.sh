@@ -6,8 +6,6 @@ set -euo pipefail
 command -v helm >/dev/null || { echo "helm not installed"; exit 1; }
 
 add () { helm repo add "$1" "$2" >/dev/null 2>&1 || true; }
-add cnpg         https://cloudnative-pg.github.io/charts
-add redpanda     https://charts.redpanda.com
 add cloudpirates https://cloudpirates-io.github.io/helm-charts
 echo "updating repo indexes..."
 helm repo update >/dev/null 2>&1 || true
