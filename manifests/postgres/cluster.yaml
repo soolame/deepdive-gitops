@@ -31,3 +31,8 @@ spec:
   monitoring:
     # Flip to true in Phase 2 once prometheus-operator CRDs exist.
     enablePodMonitor: false
+
+  # minikube's hostPath provisioner creates the dir root-owned. Without an
+  # explicit fsGroup the postgres uid cannot write to it and initdb fails.
+  postgresUID: 26
+  postgresGID: 26
