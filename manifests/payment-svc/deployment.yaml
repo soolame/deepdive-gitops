@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: payment-svc
-          image: soolame7/deepdive-payment-svc:34687d6823a50b8b8993fd7550689a0b954454cc
+          image: soolame7/deepdive-payment-svc:2aa8b318a472e0309c0a5286e1978fdfee00a840
           ports:
             - containerPort: 9092
               name: grpc

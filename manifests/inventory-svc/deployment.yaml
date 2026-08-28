@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: inventory-svc
-          image: soolame7/deepdive-inventory-svc:34687d6823a50b8b8993fd7550689a0b954454cc
+          image: soolame7/deepdive-inventory-svc:2aa8b318a472e0309c0a5286e1978fdfee00a840
           ports:
             - containerPort: 9091
               name: grpc
