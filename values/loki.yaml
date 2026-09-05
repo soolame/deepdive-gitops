@@ -1,0 +1,89 @@
+# Verified against `helm show values grafana/loki --version 7.3.0` before
+# writing this - see manifests/minio for the S3-compatible backend these
+# credentials and bucket names point at.
+deploymentMode: SimpleScalable
+
+loki:
+  auth_enabled: false
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+  commonConfig:
+    # Only 1 write replica below - a replication factor of 3 (chart default)
+    # would leave the ring permanently short of replicas.
+    replication_factor: 1
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki-chunks
+      ruler: loki-ruler
+      admin: loki-admin
+    s3:
+      endpoint: minio.logging.svc.cluster.local:9000
+      region: us-east-1
+      s3ForcePathStyle: true
+      insecure: true
+
+# AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY are picked up by Loki's S3 client
+# from the environment - injected here from the existing minio-credentials
+# secret so nothing sensitive ends up in this file.
+global:
+  extraEnv:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: username
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: minio-credentials
+          key: password
+
+# Single-node cluster: one replica per component, small local PVCs (all real
+# data lives in MinIO - these are just WAL/index-cache scratch space).
+write:
+  replicas: 1
+  persistence:
+    size: 2Gi
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+
+read:
+  replicas: 1
+  persistence:
+    size: 2Gi
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+
+backend:
+  replicas: 1
+  persistence:
+    size: 2Gi
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+
+# Chart defaults request ~9.8Gi for chunksCache alone - more than this
+# entire node's 9216Mi budget. Single-node learning setup needs nowhere
+# near that much memcached.
+chunksCache:
+  allocatedMemory: 256
+  allocatedCPU: 100m
+
+resultsCache:
+  allocatedMemory: 128
+  allocatedCPU: 100m
+
+# Helm-test-only pod (`helm test`) - Argo never runs helm tests, so this
+# would just sit in the resource tree as a one-off Pod for no reason.
+test:
+  enabled: false

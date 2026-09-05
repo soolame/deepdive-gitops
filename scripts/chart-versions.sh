@@ -7,6 +7,8 @@ command -v helm >/dev/null || { echo "helm not installed"; exit 1; }
 
 add () { helm repo add "$1" "$2" >/dev/null 2>&1 || true; }
 add cloudpirates https://cloudpirates-io.github.io/helm-charts
+add grafana https://grafana.github.io/helm-charts
+add prometheus-community https://prometheus-community.github.io/helm-charts
 echo "updating repo indexes..."
 helm repo update >/dev/null 2>&1 || true
 echo
@@ -14,12 +16,12 @@ echo
 # $1 = apps/<file>  $2 = repo alias  $3 = chart name
 check () {
   app="$1"; repo="$2"; chart="$3"
-  printf '%-20s %-28s ' "$app" "$repo/$chart"
+  printf '%-20s %-38s ' "$app" "$repo/$chart"
   ver=$(helm search repo "${repo}/${chart}" --output json 2>/dev/null \
         | grep -o '"version":"[^"]*"' | head -1 | cut -d'"' -f4) || ver=""
   if [ -n "$ver" ]; then
     echo "$ver"
-    printf '  -> sed -i "" "s/TODO-PIN/%s/" apps/%s.yaml\n' "$ver" "$app"
+    printf '  -> update targetRevision in apps/%s.yaml to "%s" if different\n' "$app" "$ver"
   else
     echo "NOT FOUND"
     echo "  charts actually in $repo:"
@@ -30,8 +32,9 @@ check () {
   echo
 }
 
-check cloudnative-pg    cnpg         cloudnative-pg
-check redpanda-operator redpanda     operator
-check valkey            cloudpirates valkey
+check valkey                 cloudpirates          valkey
+check loki                   grafana               loki
+check kube-prometheus-stack  prometheus-community  kube-prometheus-stack
 
-echo "Paste the sed lines above, then: git commit -am 'pin chart versions' && git push"
+echo "After updating a version, run: helm template <chart> <repo>/<chart> --version <v> -f values/<name>.yaml"
+echo "to catch breaking changes before committing."
