@@ -1,6 +1,7 @@
 SHELL     := /bin/bash
 ARGOCD_NS := argocd
 DATA_NS   := data
+LOGGING_NS := logging
 
 .PHONY: help
 help:
@@ -19,13 +20,19 @@ argocd: ## Install/upgrade Argo CD
 	  -f bootstrap/argocd-values.yaml --wait
 
 .PHONY: secrets
-secrets: ## Create postgres-credentials (basic-auth type, required by CNPG)
+secrets: ## Create postgres-credentials and minio-credentials
 	@kubectl get ns $(DATA_NS) >/dev/null 2>&1 || kubectl create ns $(DATA_NS)
 	@kubectl -n $(DATA_NS) get secret postgres-credentials >/dev/null 2>&1 \
 	  && echo "already exists" \
 	  || kubectl -n $(DATA_NS) create secret generic postgres-credentials \
 	       --type=kubernetes.io/basic-auth \
 	       --from-literal=username=app \
+	       --from-literal=password="$$(openssl rand -hex 16)"
+	@kubectl get ns $(LOGGING_NS) >/dev/null 2>&1 || kubectl create ns $(LOGGING_NS)
+	@kubectl -n $(LOGGING_NS) get secret minio-credentials >/dev/null 2>&1 \
+	  && echo "already exists" \
+	  || kubectl -n $(LOGGING_NS) create secret generic minio-credentials \
+	       --from-literal=username=minioadmin \
 	       --from-literal=password="$$(openssl rand -hex 16)"
 
 .PHONY: bootstrap

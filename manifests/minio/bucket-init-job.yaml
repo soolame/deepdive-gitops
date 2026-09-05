@@ -1,0 +1,39 @@
+# One-shot: creates the buckets Loki needs. Idempotent (--ignore-existing),
+# safe to re-run if ever deleted and recreated.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket-init
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: username
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: password
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              until mc alias set local http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"; do
+                echo "waiting for minio..."
+                sleep 3
+              done
+              mc mb --ignore-existing local/loki-chunks
+              mc mb --ignore-existing local/loki-ruler
+              mc mb --ignore-existing local/loki-admin
